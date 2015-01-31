@@ -68,6 +68,6 @@ class MPU6050 {
         uint8_t buffer[14];
 };
 
-#endif /* _MPU6050_H_ */
+#endif /*  _MPU6050_H_ */
 
 
