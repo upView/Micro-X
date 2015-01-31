@@ -1,7 +1,7 @@
 
 #include "Wire.h"
 #include "I2Cdev.h"
-#include "MPU6050.h"
+#include "MPU_6050.h"
 #include "String.h"
 
 MPU6050 accelgyro;
