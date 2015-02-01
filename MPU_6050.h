@@ -1,7 +1,7 @@
 #ifndef _MPU6050_H_
 #define _MPU6050_H_
 
-#include "I2Cdev.h"
+#include "easyI2C.h"
 #include <avr/pgmspace.h>
 
 #define MPU6050_ADDRESS_AD0_LOW     0x68 // address pin low (GND), default for InvenSense evaluation board

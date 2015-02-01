@@ -7,8 +7,6 @@ MPU6050::MPU6050() {
     devAddr = MPU6050_DEFAULT_ADDRESS;
 }
 
-
-
 /** Power on and prepare for general usage.
  * This will activate the device and take it out of sleep mode (which must be done
  * after start-up). This function also sets both the accelerometer and the gyroscope
@@ -60,7 +58,7 @@ void MPU6050::initialize() {
  * @see MPU6050_CFG_DLPF_CFG_LENGTH
  */
 void MPU6050::setDLPFMode(uint8_t mode) {
-    I2Cdev::writeBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, mode);
+    easyI2C::writeBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, mode);
 }
 
 
@@ -89,7 +87,7 @@ void MPU6050::setDLPFMode(uint8_t mode) {
  * @see MPU6050_GCONFIG_FS_SEL_LENGTH
  */
 void MPU6050::setFullScaleGyroRange(uint8_t range) {
-    I2Cdev::writeBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
+    easyI2C::writeBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
 }
 
 
@@ -114,7 +112,7 @@ void MPU6050::setFullScaleGyroRange(uint8_t range) {
  * @see getFullScaleAccelRange()
  */
 void MPU6050::setFullScaleAccelRange(uint8_t range) {
-    I2Cdev::writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range);
+    easyI2C::writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range);
 }
 
 
@@ -132,7 +130,7 @@ void MPU6050::setFullScaleAccelRange(uint8_t range) {
  * @see MPU6050_RA_ACCEL_XOUT_H
  */
 void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz) {
-    I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 14, buffer);
+    easyI2C::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 14, buffer);
     *ax = (((int16_t)buffer[0]) << 8) | buffer[1];
     *ay = (((int16_t)buffer[2]) << 8) | buffer[3];
     *az = (((int16_t)buffer[4]) << 8) | buffer[5];
@@ -150,7 +148,7 @@ void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int
  * @see MPU6050_PWR1_SLEEP_BIT
  */
 void MPU6050::setSleepEnabled(bool enabled) {
-    I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled);
+    easyI2C::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled);
 }
 
 
@@ -186,7 +184,7 @@ void MPU6050::setSleepEnabled(bool enabled) {
  * @see MPU6050_PWR1_CLKSEL_LENGTH
  */
 void MPU6050::setClockSource(uint8_t source) {
-    I2Cdev::writeBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
+    easyI2C::writeBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
 }
 
 

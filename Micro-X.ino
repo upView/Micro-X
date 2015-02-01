@@ -1,8 +1,35 @@
+//  _   _ _ __/\   /(_) _____      __
+// | | | | '_ \ \ / / |/ _ \ \ /\ / /
+// | |_| | |_) \ V /| |  __/\ V  V / 
+//  \__,_| .__/ \_/ |_|\___| \_/\_/  
+//       |_|                         
+// 
+// Mini-X Quad control firmware
+//
+// Copyright (C) 2013-2014 upView
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, in version 3.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+//
+// main.ino - Containing the main function.
 
+// Platform
 #include "Wire.h"
-#include "I2Cdev.h"
+#include "easyI2C.h"
+
+// HAL
 #include "MPU_6050.h"
-#include "String.h"
+// +
+// 
 
 MPU6050 accelgyro;
 
@@ -29,7 +56,6 @@ float offset_x, offset_y, offset_z;
 float command_pitch, err_pitch, pid_pitch, pitch_I, pitch_D;
 
 float command_roll, err_roll, pid_roll, roll_I, roll_D;
-
 
 float throttle;
 
