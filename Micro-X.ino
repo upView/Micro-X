@@ -27,9 +27,7 @@
 #include "easyI2C.h"
 
 // HAL
-#include "MPU_6050.h"
-// +
-// 
+#include "MPU6050.h"
 
 MPU6050 accelgyro;
 
@@ -67,11 +65,10 @@ float kd = 0.1;
 
 void setup()
 {  
-  pinMode(3, OUTPUT);  
-  pinMode(9, OUTPUT);  
-  pinMode(10, OUTPUT);  
-  pinMode(11, OUTPUT); 
-
+  pinMode(3, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(11, OUTPUT);
 
   attachInterrupt(0,calcInput,CHANGE);
   Serial.begin(115200);
@@ -79,11 +76,7 @@ void setup()
   
   pinMode(led, OUTPUT); 
   
-  accelgyro.setSleepEnabled(false);
-  accelgyro.setFullScaleGyroRange(3); //Gyro scale 2000deg/s
-  accelgyro.setFullScaleAccelRange(1);//Accel scale 4g
-  accelgyro.setClockSource(3);// Select GyroZ clock
-  accelgyro.setDLPFMode(4);// set bandwidth of both gyro and accelerometer to ~20 Hz
+  accelgyro.initialize();
 
   calibration_gyroscope();
 

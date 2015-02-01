@@ -4,8 +4,7 @@
 #include "Arduino.h"
 #include <Wire.h>
 
-// 1000ms default read timeout (modify with "easyI2C::readTimeout = [ms];")
-#define I2CDEV_DEFAULT_READ_TIMEOUT     1000
+#define I2CDEV_DEFAULT_READ_TIMEOUT 1000
 
 class easyI2C {
     public:

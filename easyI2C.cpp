@@ -10,7 +10,8 @@ easyI2C::easyI2C() {}
  * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in easyI2C::readTimeout)
  * @return Status of read operation (true = success)
  */
- int8_t easyI2C::readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout) {
+ int8_t easyI2C::readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout)
+{
     uint8_t b;
     uint8_t count = readByte(devAddr, regAddr, &b, timeout);
     *data = b & (1 << bitNum);
@@ -103,7 +104,7 @@ int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint
     return count;
 }
 
-/** write a single bit in an 8-bit device register.
+/** Write a single bit in an 8-bit device register.
  * @param devAddr I2C slave device address
  * @param regAddr Register regAddr to write to
  * @param bitNum Bit position to write (0-7)
@@ -194,4 +195,5 @@ bool easyI2C::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
     #endif
     return status == 0;
 }
+
 uint16_t easyI2C::readTimeout = I2CDEV_DEFAULT_READ_TIMEOUT;
