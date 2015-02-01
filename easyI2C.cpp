@@ -27,7 +27,8 @@ easyI2C::easyI2C() {}
  * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in easyI2C::readTimeout)
  * @return Status of read operation (true = success)
  */
-int8_t easyI2C::readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data, uint16_t timeout) {
+int8_t easyI2C::readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data, uint16_t timeout)
+{
     // 01101001 read byte
     // 76543210 bit numbers
     //    xxx   args: bitStart=4, length=3
@@ -50,7 +51,8 @@ int8_t easyI2C::readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uin
  * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in easyI2C::readTimeout)
  * @return Status of read operation (true = success)
  */
-int8_t easyI2C::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t timeout) {
+int8_t easyI2C::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t timeout)
+{
     return readBytes(devAddr, regAddr, 1, data, timeout);
 }
 
@@ -62,8 +64,9 @@ int8_t easyI2C::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16
  * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in easyI2C::readTimeout)
  * @return Number of bytes read (-1 indicates failure)
  */
-int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t timeout) {
-    #ifdef I2CDEV_SERIAL_DEBUG
+int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t timeout)
+{
+    #ifdef I2C_SERIAL_DEBUG
         Serial.print("I2C (0x");
         Serial.print(devAddr, HEX);
         Serial.print(") reading ");
@@ -76,16 +79,18 @@ int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint
     int8_t count = 0;
     uint32_t t1 = millis();
 
-    for (uint8_t k = 0; k < length; k += min(length, BUFFER_LENGTH)) {
+    for (uint8_t k = 0; k < length; k += min(length, BUFFER_LENGTH))
+    {
         Wire.beginTransmission(devAddr);
         Wire.write(regAddr);
         Wire.endTransmission();
         Wire.beginTransmission(devAddr);
         Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
 
-        for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++) {
+        for (; Wire.available() && (timeout == 0 || millis() - t1 < timeout); count++)
+        {
             data[count] = Wire.read();
-            #ifdef I2CDEV_SERIAL_DEBUG
+            #ifdef I2C_SERIAL_DEBUG
                 Serial.print(data[count], HEX);
                 if (count + 1 < length) Serial.print(" ");
             #endif
@@ -95,7 +100,7 @@ int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint
     // check for timeout
     if (timeout > 0 && millis() - t1 >= timeout && count < length) count = -1; // timeout
 
-    #ifdef I2CDEV_SERIAL_DEBUG
+    #ifdef I2C_SERIAL_DEBUG
         Serial.print(". Done (");
         Serial.print(count, DEC);
         Serial.println(" read).");
@@ -111,7 +116,8 @@ int8_t easyI2C::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint
  * @param value New bit value to write
  * @return Status of operation (true = success)
  */
-bool easyI2C::writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data) {
+bool easyI2C::writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data)
+{
     uint8_t b;
     readByte(devAddr, regAddr, &b);
     b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
@@ -126,7 +132,8 @@ bool easyI2C::writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t
  * @param data Right-aligned value to write
  * @return Status of operation (true = success)
  */
-bool easyI2C::writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data) {
+bool easyI2C::writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data) 
+{
     //      010 value to write
     // 76543210 bit numbers
     //    xxx   args: bitStart=4, length=3
@@ -153,7 +160,8 @@ bool easyI2C::writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint
  * @param data New byte value to write
  * @return Status of operation (true = success)
  */
-bool easyI2C::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data) {
+bool easyI2C::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data)
+{
     return writeBytes(devAddr, regAddr, 1, &data);
 }
 
@@ -164,8 +172,9 @@ bool easyI2C::writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data) {
  * @param data Buffer to copy new data from
  * @return Status of operation (true = success)
  */
-bool easyI2C::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data) {
-    #ifdef I2CDEV_SERIAL_DEBUG
+bool easyI2C::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data)
+{
+    #ifdef I2C_SERIAL_DEBUG
         Serial.print("I2C (0x");
         Serial.print(devAddr, HEX);
         Serial.print(") writing ");
@@ -180,7 +189,7 @@ bool easyI2C::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
     Wire.write((uint8_t) regAddr); // send address
 
     for (uint8_t i = 0; i < length; i++) {
-        #ifdef I2CDEV_SERIAL_DEBUG
+        #ifdef I2C_SERIAL_DEBUG
             Serial.print(data[i], HEX);
             if (i + 1 < length) Serial.print(" ");
         #endif
@@ -190,10 +199,10 @@ bool easyI2C::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
 
     status = Wire.endTransmission();
     
-    #ifdef I2CDEV_SERIAL_DEBUG
+    #ifdef I2C_SERIAL_DEBUG
         Serial.println(". Done.");
     #endif
     return status == 0;
 }
 
-uint16_t easyI2C::readTimeout = I2CDEV_DEFAULT_READ_TIMEOUT;
+uint16_t easyI2C::readTimeout = I2C_DEFAULT_READ_TIMEOUT;

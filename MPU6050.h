@@ -79,8 +79,8 @@ class MPU6050
 		void getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz);
         
 	private:
-        uint8_t devAddr;
-        uint8_t buffer[14];
+        uint8_t _devAddr;
+        uint8_t _buffer[14];
 };
 
 #endif

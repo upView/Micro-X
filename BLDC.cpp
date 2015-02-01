@@ -1,11 +1,16 @@
-#include "MPU6050.h"
+#include "BLDC.h"
 
-/** Default constructor, uses default I2C address.
- * @see MPU6050_ADDRESS
- */
-MPU6050::MPU6050()
+BLDC::BLDC()
 {
-    _devAddr = MPU6050_ADDRESS;
+    _motorsPins[FRONT_LEFT]  = BLDC_PWM_MOTOR_FRONT_LEFT;
+    _motorsPins[FRONT_RIGHT] = BLDC_PWM_MOTOR_FRONT_RIGHT;
+    _motorsPins[REAR_LEFT]   = BLDC_PWM_MOTOR_REAR_LEFT;
+    _motorsPins[REAR_RIGHT]  = BLDC_PWM_MOTOR_REAR_RIGHT;
+
+    for (unsigned int i = 0; i < BLDC_MOTORS_COUNT; i++) 
+    {
+        pinMode(_motorsPins[i], OUTPUT);
+    }
 }
 
 /** Power on and prepare for general usage.
@@ -15,14 +20,6 @@ MPU6050::MPU6050()
  * the clock source to use the Z Gyro for reference, which is slightly better than
  * the default internal clock source.
  */
-void MPU6050::initialize()
-{
-    setClockSource(MPU6050_CLOCK_PLL_ZGYRO);
-    setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
-    setFullScaleAccelRange(MPU6050_ACCEL_FS_4);
-    setDLPFMode(MPU6050_DLPF_BW_20);
-    setSleepEnabled(false);
-}
 
 /** Get digital low-pass filter configuration.
  * The DLPF_CFG parameter sets the digital low pass filter configuration. It
@@ -52,10 +49,6 @@ void MPU6050::initialize()
  * @see MPU6050_CFG_DLPF_CFG_BIT
  * @see MPU6050_CFG_DLPF_CFG_LENGTH
  */
-void MPU6050::setDLPFMode(uint8_t mode)
-{
-    easyI2C::writeBits(_devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, mode);
-}
 
 /** Set full-scale gyroscope range.
  * The FS_SEL parameter allows setting the full-scale range of the gyro sensors,
@@ -80,10 +73,6 @@ void MPU6050::setDLPFMode(uint8_t mode)
  * @see MPU6050_GCONFIG_FS_SEL_BIT
  * @see MPU6050_GCONFIG_FS_SEL_LENGTH
  */
-void MPU6050::setFullScaleGyroRange(uint8_t range)
-{
-    easyI2C::writeBits(_devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
-}
 
 /** Set full-scale accelerometer range.
  * The FS_SEL parameter allows setting the full-scale range of the accelerometer
@@ -104,11 +93,6 @@ void MPU6050::setFullScaleGyroRange(uint8_t range)
  * @param range New full-scale accelerometer range setting
  * @see getFullScaleAccelRange()
  */
-void MPU6050::setFullScaleAccelRange(uint8_t range)
-{
-    easyI2C::writeBits(_devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range);
-}
-
 /** Get raw 6-axis motion sensor readings (accel/gyro).
  * Retrieves all currently available motion sensor values.
  * @param ax 16-bit signed integer container for accelerometer X-axis value
@@ -121,16 +105,6 @@ void MPU6050::setFullScaleAccelRange(uint8_t range)
  * @see getRotation()
  * @see MPU6050_RA_ACCEL_XOUT_H
  */
-void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz)
-{
-    easyI2C::readBytes(_devAddr, MPU6050_RA_ACCEL_XOUT_H, 14, _buffer);
-    *ax = (((int16_t)_buffer[0]) << 8) | _buffer[1];
-    *ay = (((int16_t)_buffer[2]) << 8) | _buffer[3];
-    *az = (((int16_t)_buffer[4]) << 8) | _buffer[5];
-    *gx = (((int16_t)_buffer[8]) << 8) | _buffer[9];
-    *gy = (((int16_t)_buffer[10]) << 8) | _buffer[11];
-    *gz = (((int16_t)_buffer[12]) << 8) | _buffer[13];
-}
 
 /** Set sleep mode status.
  * @param enabled New sleep mode enabled status
@@ -138,10 +112,6 @@ void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_SLEEP_BIT
  */
-void MPU6050::setSleepEnabled(bool enabled)
-{
-    easyI2C::writeBit(_devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled);
-}
 
 /** Set clock source setting.
  * An internal 8MHz oscillator, gyroscope based clock, or external sources can
@@ -173,7 +143,3 @@ void MPU6050::setSleepEnabled(bool enabled)
  * @see MPU6050_PWR1_CLKSEL_BIT
  * @see MPU6050_PWR1_CLKSEL_LENGTH
  */
-void MPU6050::setClockSource(uint8_t source)
-{
-    easyI2C::writeBits(_devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
-}

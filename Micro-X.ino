@@ -84,7 +84,6 @@ void setup()
   delay(20);
 }
 
-
 void loop()
 {
   if((millis()-timer)>=10)   // 10ms => 100 Hz loop rate 
