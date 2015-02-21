@@ -67,6 +67,7 @@ void IMU_print ()
 
   Serial.println(" ");
   
+  /*
   while(Serial.available())
   {
     char c = Serial.read();
@@ -97,7 +98,7 @@ void IMU_print ()
    }
     
   }
-
+*/
  
 }
 
