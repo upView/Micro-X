@@ -1,33 +1,8 @@
-//  _   _ _ __/\   /(_) _____      __
-// | | | | '_ \ \ / / |/ _ \ \ /\ / /
-// | |_| | |_) \ V /| |  __/\ V  V / 
-//  \__,_| .__/ \_/ |_|\___| \_/\_/  
-//       |_|                         
-// 
-// Mini-X Quad control firmware
-//
-// Copyright (C) 2013-2014 upView
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, in version 3.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
-//
-// main.ino - Containing the main function.
 
-// Platform
 #include "Wire.h"
-#include "easyI2C.h"
-
-// HAL
-#include "MPU6050.h"
+#include "I2Cdev.h"
+#include "MPU_6050.h"
+#include "String.h"
 
 MPU6050 accelgyro;
 
@@ -55,6 +30,7 @@ float command_pitch, err_pitch, pid_pitch, pitch_I, pitch_D;
 
 float command_roll, err_roll, pid_roll, roll_I, roll_D;
 
+
 float throttle;
 
 float pid_yaw;
@@ -65,10 +41,11 @@ float kd = 0.1;
 
 void setup()
 {  
-  pinMode(3, OUTPUT);
-  pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode(11, OUTPUT);
+  pinMode(3, OUTPUT);  
+  pinMode(9, OUTPUT);  
+  pinMode(10, OUTPUT);  
+  pinMode(11, OUTPUT); 
+
 
   attachInterrupt(0,calcInput,CHANGE);
   Serial.begin(115200);
@@ -76,7 +53,11 @@ void setup()
   
   pinMode(led, OUTPUT); 
   
-  accelgyro.initialize();
+  accelgyro.setSleepEnabled(false);
+  accelgyro.setFullScaleGyroRange(3); //Gyro scale 2000deg/s
+  accelgyro.setFullScaleAccelRange(1);//Accel scale 4g
+  accelgyro.setClockSource(3);// Select GyroZ clock
+  accelgyro.setDLPFMode(4);// set bandwidth of both gyro and accelerometer to ~20 Hz
 
   calibration_gyroscope();
 
