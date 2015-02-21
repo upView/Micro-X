@@ -2,10 +2,9 @@
 #define _PLATFORM_I2C_
 
 #include "Arduino.h"
-#include "Wire.h"
+#include <Wire.h>
 
-#define I2C_SERIAL_DEBUG
-#define I2C_DEFAULT_READ_TIMEOUT 1000
+#define I2CDEV_DEFAULT_READ_TIMEOUT 1000
 
 class easyI2C {
     public:
