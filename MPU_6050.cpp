@@ -1,4 +1,4 @@
-#include "MPU6050.h"
+#include "MPU_6050.h"
 
 /** Default constructor, uses default I2C address.
  * @see MPU6050_ADDRESS
