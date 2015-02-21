@@ -28,8 +28,10 @@
 
 // HAL
 #include "MPU6050.h"
+#include "BLDC.h"
 
 MPU6050 accelgyro;
+BLDC bldc;
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
@@ -64,19 +66,15 @@ float ki = 0.15;
 float kd = 0.1;
 
 void setup()
-{  
-  pinMode(3, OUTPUT);
-  pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode(11, OUTPUT);
-
+{
   attachInterrupt(0,calcInput,CHANGE);
   Serial.begin(115200);
   Wire.begin();
   
-  pinMode(led, OUTPUT); 
-  
   accelgyro.initialize();
+  bldc.initializeSpeedController();
+  
+  pinMode(led, OUTPUT);
 
   calibration_gyroscope();
 
@@ -96,7 +94,6 @@ void loop()
 
   }
 }
-
 
 void fast_Loop() 
 {
@@ -134,7 +131,6 @@ void fast_Loop()
   //THROTTLE
   throttle = constrain((rc[0]-1000)/1.8,0,255);
   
-  
   //Sécurité en cas de perte du signal de la manette. 
   //Quand le recepteur RC perd le contacte avec la manette, la voie rc[1] prends une valeurs > 1500, 
   //valeur qui ne peut jamais etre atteinte en temps normal. On éteind immediatement les moteurs.
@@ -159,11 +155,10 @@ void fast_Loop()
   //Envoie ou reception d'information par communication série 
   communication_serie();
   
-  //Commande des moteurs. Mis à jour des periodes des signaux pwm.
-  analogWrite(3, constrain(throttle+pid_roll-pid_pitch+pid_yaw,0,255)); //arrière droit
-  analogWrite(9, constrain(throttle-pid_roll+pid_pitch+pid_yaw,0,255)); //avant gauche
-  analogWrite(10, constrain(throttle-pid_roll-pid_pitch-pid_yaw,0,255)); //arrière gauche
-  analogWrite(11, constrain(throttle+pid_roll+pid_pitch-pid_yaw,0,255)); //avant droit
+  bldc.setMotorVelocity(REAR_RIGHT, throttle + pid_roll - pid_pitch + pid_yaw);
+  bldc.setMotorVelocity(FRONT_LEFT, throttle - pid_roll + pid_pitch + pid_yaw);
+  bldc.setMotorVelocity(REAR_LEFT, throttle - pid_roll - pid_pitch - pid_yaw);
+  bldc.setMotorVelocity(FRONT_RIGHT, throttle + pid_roll + pid_pitch - pid_yaw);
 }
 
 void calcInput()
