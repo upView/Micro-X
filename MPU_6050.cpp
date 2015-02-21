@@ -17,11 +17,11 @@ MPU6050::MPU6050()
  */
 void MPU6050::initialize()
 {
-    setClockSource(MPU6050_CLOCK_PLL_ZGYRO);
-    setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
-    setFullScaleAccelRange(MPU6050_ACCEL_FS_4);
-    setDLPFMode(MPU6050_DLPF_BW_20);
-    setSleepEnabled(false);
+  setSleepEnabled(false);
+  setClockSource(MPU6050_CLOCK_PLL_ZGYRO);
+  setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
+  setFullScaleAccelRange(MPU6050_ACCEL_FS_4);
+  setDLPFMode(MPU6050_DLPF_BW_20);
 }
 
 /** Get digital low-pass filter configuration.
