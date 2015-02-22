@@ -9,17 +9,17 @@ BLDC::BLDC()
     _motorsPins[REAR_LEFT]   = BLDC_PWM_MOTOR_REAR_LEFT;
     _motorsPins[REAR_RIGHT]  = BLDC_PWM_MOTOR_REAR_RIGHT;
 
-    for (unsigned int i = 0; i < BLDC_MOTORS_COUNT; i++) 
-    {
-        pinMode(_motorsPins[i], OUTPUT);
-    }
+
 }
 
 /** TODO: add description here.
  */
 void BLDC::initializeSpeedController()
 {
-    //TODO: implement here for ESC
+        for (unsigned int i = 0; i < BLDC_MOTORS_COUNT; i++) 
+    {
+        pinMode(_motorsPins[i], OUTPUT);
+    }
 }
 
 /** TODO: add description here.

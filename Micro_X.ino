@@ -1,4 +1,3 @@
-
 #include "Wire.h"
 #include "I2Cdev.h"
 #include "MPU_6050.h"
@@ -6,137 +5,151 @@
 #include "BLDC.h"
 #include "PID_.h"
 
-#define ToRad(x) (x*0.01745329252)  // *pi/180
-#define ToDeg(x) (x*57.2957795131)  // *180/pi
+//Sensors
+MPU6050 accelgyro; //sensor object
+int ax, ay, az; //3-axis accelerometer
+int gx, gy, gz; //3-axis gyroscope
+int biasX, biasY, biasZ; //gyro offset
 
-MPU6050 accelgyro;
-BLDC bldc;
-
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-
-volatile unsigned long ulStartPeriod = 0; // set in the interrupt
+//RC Receiver
+volatile unsigned long ulStartPeriod; // set in the interrupt
 volatile boolean bNewThrottleSignal = false; // set in the interrupt and read in the loop
-volatile int rc[7];
+volatile int rc[7]; //nb of RC channels
 
+//Complementary filter
 float pitch, roll;
-float G_Dt=0.02;
 
+//Real time constraint
+long timer; //general purpose timer 
+long timer_old; //timer memory
+float G_Dt; //loop time
+
+//Led
 int led = 13;
 
-long timer=0; //general purpose timer 
-long timer_old;
+//PID attitude pitch and roll
+float command_pitch, command_roll;
+float rate_pitch, rate_roll;
+PID PID_pitch(&command_pitch, &pitch, &rate_pitch, &G_Dt, 0.5, 0.15, 0.1);
+PID PID_roll(&command_roll, &roll, &rate_roll, &G_Dt, 0.5, 0.15, 0.1);
 
-float biasX, biasY, biasZ;
-
-float command_pitch;
-float pid_pitch;
-float rate_pitch;
-
-float command_roll;
-float pid_roll;
-float rate_roll;
-
+//Throttle
 float throttle;
 
+//PID rate yaw
 float pid_yaw;
 float err_yaw;
 float yaw_I;
 
-PID PID_pitch(&command_pitch,&pitch, &pid_pitch, &rate_pitch, &G_Dt, 0.5, 0.15, 0.1);
-PID PID_roll(&command_roll,&roll, &pid_roll, &rate_roll, &G_Dt, 0.5, 0.15, 0.1);
+//Motors
+BLDC bldc;
 
 void setup()
 {  
-
-
-
-  attachInterrupt(0,calcInput,CHANGE);
+  //function calcInput is called everytime there in a change on pin 2. 
+  //Pin 2 is hard-wired to interrupt 0
+  attachInterrupt(0,calcInput,CHANGE); 
+  
+  //USB communication enabled. Baud rate 115200 baud 
   Serial.begin(115200);
+  
+  //I2C enabled
   Wire.begin();
   
+  //motors init
   bldc.initializeSpeedController();
   
+  //Pin 13 is hard-wired to the red leds. It has to be turned as an output
   pinMode(led, OUTPUT); 
-accelgyro.initialize();
-    
+  
+  //Sensors init
+  accelgyro.initialize();
+  
+  //gyro calibration to compute offset  
   calib_gyro();
-
-  timer = millis();
-  delay(20);
 }
 
 
 void loop()
 {
-  if((millis()-timer)>=10)   // 10ms => 100 Hz loop rate 
+  if((millis()-timer)>=10)   //10ms => 100 Hz loop rate 
   { 
-    timer_old = timer;
-    timer=millis();
-    G_Dt = (timer-timer_old)/1000.0;      // Real time of loop run 
+    timer_old = timer; //save time for the next computation
+    timer=millis();  //current time
+    G_Dt = (timer-timer_old)/1000.0; //Real time of loop run 
 
-    fast_Loop();
-
+    fast_Loop(); //Go to fast loop
   }
 }
 
 
 void fast_Loop(){
 
-  imu_Valget (); // read sensors
+   //read sensors and compute angles
+  imu_Valget ();
 
-  
 
-  //pid pitch = rc1
+  //compute pid pitch
   command_pitch = -(rc[2]-1120.0)/20;
   rate_pitch = (float)(-gx+biasX)*2000.0f/32768.0f;
-  PID_pitch.Compute();
+  PID_pitch.compute();
   
 
-  //ROLL
+  //compute pid roll
   command_roll = (rc[1]-1120.0)/20;
   rate_roll = (float)(gy-biasY)*2000.0f/32768.0f;
-  PID_roll.Compute();
+  PID_roll.compute();
 
-  //YAW
+
+  //compute pid yaw
   err_yaw = (float)(-(gz-biasZ))*2000.0f/32768.0f;
   yaw_I += (float)err_yaw*G_Dt; 
   pid_yaw = err_yaw*1.0+yaw_I;
   
-  //Throttle
+  
+  //throttle
   throttle = constrain((rc[0]-1000)/1.8,0,255);
   
   //fail safe
+  //when the RC receiver lose Rc transmitter signal, rc[1] is over 1500. 
   if(rc[1]>1500)
   {
     throttle=0;
   }
 
+  //reset values if throttle is low enough for the quadcopter to be on the ground.
   if(throttle < 30)
   {
-    pid_pitch=0;
-    pid_roll=0;
+    //hold pid values to 0 so that the motors are not spining when the throttle stick is down
+    PID_pitch.hold();
+    PID_roll.hold();
     pid_yaw=0;
 
-    PID_pitch.Reset_I();
-    PID_roll.Reset_I();
+    //reset integrators
+    PID_pitch.reset_I();
+    PID_roll.reset_I();
     yaw_I = 0;
   }
 
-  IMU_print();
+  //debug and tunning
+  serial_print();
   
-  bldc.setMotorVelocity(REAR_RIGHT, throttle + pid_roll - pid_pitch + pid_yaw);
-  bldc.setMotorVelocity(FRONT_LEFT, throttle - pid_roll + pid_pitch + pid_yaw);
-  bldc.setMotorVelocity(REAR_LEFT, throttle - pid_roll - pid_pitch - pid_yaw);
-  bldc.setMotorVelocity(FRONT_RIGHT, throttle + pid_roll + pid_pitch - pid_yaw);
+  //output mixer. Each motor speed is a combination between throttle and pid values.
+  bldc.setMotorVelocity(REAR_RIGHT, throttle + PID_roll.value() - PID_pitch.value() + pid_yaw);
+  bldc.setMotorVelocity(FRONT_LEFT, throttle - PID_roll.value() + PID_pitch.value() + pid_yaw);
+  bldc.setMotorVelocity(REAR_LEFT, throttle - PID_roll.value() - PID_pitch.value() - pid_yaw);
+  bldc.setMotorVelocity(FRONT_RIGHT, throttle + PID_roll.value() + PID_pitch.value() - pid_yaw);
 
 }
 
+
+//Interrupt service routine called everytime the digital PPM signal from the RC receiver change on pin 2 
 void calcInput()
 {
   static unsigned int nThrottleIn;
   static int channel;
 
+  //if the signal is high we start to count
   if(digitalRead(2) == HIGH)
   { 
     ulStartPeriod = micros();
@@ -145,9 +158,10 @@ void calcInput()
   {
     if(ulStartPeriod)
     {
-      nThrottleIn = (int)(micros() - ulStartPeriod);
-      ulStartPeriod = 0;
+      nThrottleIn = (int)(micros() - ulStartPeriod); //compute the length of the pulse
+      ulStartPeriod = 0; //reset for the next computation
 
+      //channel detector
       if(nThrottleIn >2000){
         channel = 0;
       }

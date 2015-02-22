@@ -13,8 +13,6 @@ void imu_Valget ()
   // Compensate for drift with accelerometer data if no vibration
   // Weight for accelerometer info (<0.75G = 0.0, 1G = 1.0 , >1.25G = 0.0)
   int forceMagnitudeApprox = abs(ax) + abs(ay) + abs(az);
-  Serial.print(forceMagnitudeApprox);
-  Serial.print(" ");
 
   if (forceMagnitudeApprox > 6144 && forceMagnitudeApprox < 10240)
   {
@@ -58,47 +56,54 @@ void calib_gyro()
 }
 
 
-void IMU_print ()
+void serial_print ()
 {
 
-  Serial.print(throttle);
+  Serial.print(PID_pitch.getP());
   Serial.print(" ");
-  Serial.print(rc[1]);
-
+  Serial.print(PID_pitch.getI());
+Serial.print(" ");
+  Serial.print(PID_pitch.getD());
   Serial.println(" ");
   
-  /*
+  
   while(Serial.available())
   {
     char c = Serial.read();
     
     if (c=='a')
    {
-     kp+=0.02;
+     PID_pitch.setP(PID_pitch.getP()+0.02);
+     PID_roll.setP(PID_roll.getP()+0.02);
    } 
    else if (c=='z')
    {
-    kp-=0.02; 
+    PID_pitch.setP(PID_pitch.getP()-0.02);
+    PID_roll.setP(PID_roll.getP()-0.02);
    }
     else if (c=='q')
    {
-     ki+=0.02;
+     PID_pitch.setI(PID_pitch.getI()+0.02);
+     PID_roll.setI(PID_roll.getI()+0.02);
    }
     else if (c=='s')
    {
-     ki-=0.02;
+    PID_pitch.setI(PID_pitch.getI()-0.02);
+    PID_roll.setI(PID_roll.getI()-0.02);
    }
        else if (c=='w')
    {
-     kd+=0.01;
+     PID_pitch.setD(PID_pitch.getD()+0.02);
+     PID_roll.setD(PID_roll.getD()+0.02);
    }
     else if (c=='x')
    {
-     kd-=0.01;
+     PID_pitch.setD(PID_pitch.getD()-0.02);
+     PID_roll.setD(PID_roll.getD()-0.02);
    }
     
   }
-*/
+
  
 }
 

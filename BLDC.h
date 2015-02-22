@@ -1,3 +1,4 @@
+
 #ifndef _HAL_BLDC_
 #define _HAL_BLDC_
 

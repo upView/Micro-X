@@ -4,7 +4,7 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define I2C_SERIAL_DEBUG
+//#define I2C_SERIAL_DEBUG
 #define I2C_DEFAULT_READ_TIMEOUT 1000
 
 class easyI2C {
