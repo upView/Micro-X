@@ -1,3 +1,29 @@
+//  _   _ _ __/\   /(_) _____      __
+// | | | | '_ \ \ / / |/ _ \ \ /\ / /
+// | |_| | |_) \ V /| |  __/\ V  V / 
+//  \__,_| .__/ \_/ |_|\___| \_/\_/  
+//       |_|                         
+// 
+// Mini-X Quad control firmware
+//
+// Copyright (C) 2013-2014 upView
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, in version 3.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+//
+// Micro_X.ino - Containing the main function.
+
+
+// Platform
 #include "Wire.h"
 #include "I2Cdev.h"
 #include "MPU_6050.h"
@@ -12,8 +38,7 @@ int gx, gy, gz; //3-axis gyroscope
 int biasX, biasY, biasZ; //gyro offset
 
 //RC Receiver
-volatile unsigned long ulStartPeriod; // set in the interrupt
-volatile boolean bNewThrottleSignal = false; // set in the interrupt and read in the loop
+volatile unsigned long startPeriod; // set in the interrupt
 volatile int rc[7]; //nb of RC channels
 
 //Complementary filter
@@ -24,7 +49,7 @@ long timer; //general purpose timer
 long timer_old; //timer memory
 float G_Dt; //loop time
 
-//Led
+// The red LEDs are conected to Arduino pin n°13
 int led = 13;
 
 //PID attitude pitch and roll
@@ -44,11 +69,13 @@ float yaw_I;
 //Motors
 BLDC bldc;
 
+
+// the setup routine runs once
 void setup()
 {  
-  //function calcInput is called everytime there in a change on pin 2. 
+  //function calcInput is called everytime there in a falling edge on pin 2. 
   //Pin 2 is hard-wired to interrupt 0
-  attachInterrupt(0,calcInput,CHANGE); 
+  attachInterrupt(0,calcInput,FALLING); 
   
   //USB communication enabled. Baud rate 115200 baud 
   Serial.begin(115200);
@@ -70,6 +97,7 @@ void setup()
 }
 
 
+// the loop routine runs forever
 void loop()
 {
   if((millis()-timer)>=10)   //10ms => 100 Hz loop rate 
@@ -90,13 +118,13 @@ void fast_Loop(){
 
 
   //compute pid pitch
-  command_pitch = -(rc[2]-1120.0)/20;
+  command_pitch = -(rc[2]-1484.0)/20;
   rate_pitch = (float)(-gx+biasX)*2000.0f/32768.0f;
   PID_pitch.compute();
   
 
   //compute pid roll
-  command_roll = (rc[1]-1120.0)/20;
+  command_roll = (rc[1]-1456.0)/20;
   rate_roll = (float)(gy-biasY)*2000.0f/32768.0f;
   PID_roll.compute();
 
@@ -108,11 +136,11 @@ void fast_Loop(){
   
   
   //throttle
-  throttle = constrain((rc[0]-1000)/1.8,0,255);
+  throttle = constrain((rc[0]-1180)/1.8,0,255);
   
   //fail safe
   //when the RC receiver lose Rc transmitter signal, rc[1] is over 1500. 
-  if(rc[1]>1500)
+  if(rc[1]>1900)
   {
     throttle=0;
   }
@@ -143,35 +171,29 @@ void fast_Loop(){
 }
 
 
-//Interrupt service routine called everytime the digital PPM signal from the RC receiver change on pin 2 
+//Interrupt service routine called everytime the digital PPM signal from the RC receiver is falling on pin 2 
 void calcInput()
 {
-  static unsigned int nThrottleIn;
+  //static variables are not reset when we exit the function
+  static unsigned int pulseIn;
   static int channel;
-
-  //if the signal is high we start to count
-  if(digitalRead(2) == HIGH)
-  { 
-    ulStartPeriod = micros();
-  }
-  else
-  {
-    if(ulStartPeriod)
-    {
-      nThrottleIn = (int)(micros() - ulStartPeriod); //compute the length of the pulse
-      ulStartPeriod = 0; //reset for the next computation
+  
+      //length of current pulse
+      pulseIn = (int)(micros() - startPeriod);
+      
+      //remember the time for next loop
+      startPeriod = micros();
 
       //channel detector
-      if(nThrottleIn >2000){
+      if(pulseIn >2000){
         channel = 0;
       }
+      //store value
       else
       {
-        rc[channel]=nThrottleIn;
-        channel++;
+        rc[channel]=pulseIn;
+        channel++; //increment channel for next time
       }
-    }
-  }
 }
 
 

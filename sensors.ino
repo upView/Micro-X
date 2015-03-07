@@ -31,20 +31,24 @@ void imu_Valget ()
 
 void calib_gyro()
 {
+  
+  //dummy readings to warm up the sensor
   for(int c=0; c<10; c++)
   { 
-    digitalWrite(led, HIGH);
-    delay(200);
+    digitalWrite(led, HIGH); // turn the red LEDs on
+    delay(200); // wait for 200 milliseconds
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    digitalWrite(led, LOW); 
-    delay(200);
+    digitalWrite(led, LOW); // turn the red LEDs off
+    delay(200); // wait for 200 milliseconds
   }
 
+  //read once
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   biasX = gx;
   biasY = gy;
   biasZ = gz;
 
+  //compute gyro offset
   for(int i=0;i<100;i++)
   {
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
